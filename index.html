@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="鬼詰め後に壊れないためのDBTセルフマネジメントアプリ" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>Workplace DBT</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --primary: #0f172a;
+      --primaryText: #ffffff;
+      --soft: #f1f5f9;
+      --warnBg: #fffbeb;
+      --warnText: #92400e;
+      --okBg: #ecfdf5;
+      --okText: #065f46;
+      --radius: 22px;
+      --shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 760px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: max(16px, env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom));
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--soft);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 12px 0 6px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    p { line-height: 1.75; }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+
+    .danger {
+      background: var(--warnBg);
+      color: var(--warnText);
+      border: 1px solid #fde68a;
+      border-radius: var(--radius);
+      padding: 13px;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+
+    .step {
+      background: var(--soft);
+      border-radius: 18px;
+      padding: 13px;
+      margin: 10px 0;
+    }
+
+    .step strong { display: block; margin-bottom: 4px; }
+    .step span { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #334155;
+      margin: 14px 0 7px;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      min-height: 96px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      font-size: 16px;
+      line-height: 1.65;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+    }
+
+    input[type="text"] { min-height: auto; }
+
+    textarea:focus, input[type="text"]:focus {
+      border-color: #475569;
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.09);
+    }
+
+    .emotion {
+      background: var(--soft);
+      border-radius: 18px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+
+    .emotionTop {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    input[type="range"] { width: 100%; }
+
+    .buttons {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+      margin-top: 14px;
+    }
+
+    @media (min-width: 620px) {
+      .buttons { grid-template-columns: 1fr 1fr; }
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 800;
+      background: var(--primary);
+      color: var(--primaryText);
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: var(--soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    button.dangerBtn {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .reply {
+      white-space: pre-wrap;
+      background: var(--soft);
+      border-radius: 18px;
+      padding: 14px;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .ok {
+      background: var(--okBg);
+      color: var(--okText);
+      border-radius: 16px;
+      padding: 11px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .logItem {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px;
+      margin: 11px 0;
+      background: #fff;
+    }
+
+    .logDate {
+      font-size: 13px;
+      font-weight: 900;
+      color: #334155;
+    }
+
+    .logEvent {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 6px 0 10px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: var(--soft);
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mini {
+      background: var(--soft);
+      border-radius: 14px;
+      padding: 10px;
+      margin: 7px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .mini b {
+      display: block;
+      color: #475569;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .bottomNav {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: max(10px, env(safe-area-inset-bottom));
+      width: min(760px, calc(100% - 18px));
+      background: rgba(255, 255, 255, 0.93);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.16);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 7px;
+      gap: 5px;
+      z-index: 50;
+    }
+
+    .navBtn {
+      border-radius: 18px;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 4px;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .navBtn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .breathCircle {
+      width: 148px;
+      height: 148px;
+      border-radius: 999px;
+      margin: 18px auto 10px;
+      background: #e2e8f0;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #334155;
+      animation: breathe 10s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.86); }
+      40% { transform: scale(1.08); }
+      60% { transform: scale(1.08); }
+    }
+
+    .small { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="pill">🛡️ Workplace DBT</div>
+      <h1>鬼詰め後に壊れないためのDBT</h1>
+      <p class="lead">反省ではなく、身体を落ち着け、事実・解釈・次の一手に分けるための個人用アプリです。</p>
+      <div class="danger">
+        眠れない・食べられない・希死念慮・出社恐怖が続く場合は、DBTログだけで抱えず、主治医・産業医・社内相談窓口へ接続してください。
+      </div>
+    </header>
+
+    <section id="screen-crisis" class="screen active">
+      <div class="card">
+        <h2>30秒モード</h2>
+        <div class="breathCircle">4秒吸う<br>6秒吐く</div>
+        <p class="small" style="text-align:center">円の動きに合わせて、10回だけ呼吸します。</p>
+      </div>
+
+      <div class="card">
+        <h2>STOP</h2>
+        <div class="step"><strong>S：止まる</strong><span>反論・謝り倒し・自己否定をいったん止める。</span></div>
+        <div class="step"><strong>T：一歩引く</strong><span>「正確に受け止めたいので、メモします」と言ってテンポを落とす。</span></div>
+        <div class="step"><strong>O：観察する</strong><span>事実、解釈、感情、衝動を分ける。</span></div>
+        <div class="step"><strong>P：選んで進む</strong><span>「修正ポイントはA/B/Cで合っていますか？」と確認する。</span></div>
+      </div>
+
+      <div class="card">
+        <h2>TIPP</h2>
+        <div class="step"><strong>Temperature</strong><span>冷たい水を手首・顔に当てる。</span></div>
+        <div class="step"><strong>Intense exercise</strong><span>階段を1〜2階分だけ上り下りする。夜はやりすぎない。</span></div>
+        <div class="step"><strong>Paced breathing</strong><span>4秒吸って、6秒吐く。</span></div>
+        <div class="step"><strong>Progressive relaxation</strong><span>拳・肩・顎に5秒力を入れて、10秒抜く。</span></div>
+      </div>
+    </section>
+
+    <section id="screen-log" class="screen">
+      <div class="card">
+        <h2>3分DBTログ</h2>
+        <p class="small">目的は「反省」ではなく、感情と事実を分けることです。</p>
+
+        <label>① 出来事</label>
+        <textarea id="event" placeholder="例：設計書レビューで、上司から粒度が荒いと強く指摘された"></textarea>
+
+        <label>② 言われたこと</label>
+        <textarea id="quote" placeholder="相手の言葉を、できるだけ事実ベースで"></textarea>
+
+        <label>③ 身体反応</label>
+        <textarea id="body" placeholder="例：胸が苦しい、手が震える、頭が真っ白"></textarea>
+
+        <label>④ 衝動</label>
+        <textarea id="impulse" placeholder="例：謝り倒したい、逃げたい、言い返したい"></textarea>
+
+        <div id="emotions"></div>
+        <div id="emotionNotice" class="ok"></div>
+
+        <label>⑤ 自動思考</label>
+        <textarea id="autoThought" placeholder="例：自分は向いていない、また迷惑をかけた"></textarea>
+
+        <label>⑥ 事実</label>
+        <textarea id="facts" placeholder="例：設計書の粒度と確認観点に不足があった。人格否定が確定したわけではない"></textarea>
+
+        <label>⑦ 次の一手</label>
+        <textarea id="nextAction" placeholder="例：明日10時までに観点表を追加し、5分レビューを依頼する"></textarea>
+
+        <label>⑧ 相談先</label>
+        <textarea id="support" placeholder="例：先輩、People Lead、産業医、主治医"></textarea>
+
+        <div class="buttons">
+          <button onclick="saveLog()">ログを保存</button>
+          <button class="secondary" onclick="resetForm()">入力をリセット</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-reply" class="screen">
+      <div class="card">
+        <h2>上司への返答文</h2>
+        <p class="small">感情ではなく、論点・優先順位・次アクションの確認に戻します。</p>
+
+        <label>事実・論点</label>
+        <textarea id="replyFacts" placeholder="例：設計書の粒度、確認観点、報告タイミング"></textarea>
+
+        <label>次の一手</label>
+        <textarea id="replyNext" placeholder="例：観点表を追記して、明日午前に方向性レビューを依頼する"></textarea>
+
+        <div class="reply" id="replyOutput"></div>
+
+        <div class="buttons">
+          <button onclick="copyReply()">コピーする</button>
+          <button class="secondary" onclick="syncReplyFromLog()">DBTログから反映</button>
+        </div>
+        <div id="copyNotice" class="ok">コピーしました。</div>
+      </div>
+    </section>
+
+    <section id="screen-history" class="screen">
+      <div class="card">
+        <h2>保存済みログ</h2>
+        <p class="small">このスマホ・このブラウザ内にだけ保存されます。</p>
+        <div class="buttons">
+          <button onclick="downloadLogs()">テキスト出力</button>
+          <button class="dangerBtn" onclick="clearLogs()">全ログ削除</button>
+        </div>
+        <div id="history"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottomNav">
+    <button class="navBtn active" data-target="crisis" onclick="showScreen('crisis')">落ち着く</button>
+    <button class="navBtn" data-target="log" onclick="showScreen('log')">DBTログ</button>
+    <button class="navBtn" data-target="reply" onclick="showScreen('reply')">返答文</button>
+    <button class="navBtn" data-target="history" onclick="showScreen('history')">履歴</button>
+  </nav>
+
+  <script>
+    const STORAGE_KEY = "workplace_dbt_logs_pwa_v1";
+    const emotionNames = ["恐怖", "不安", "恥", "怒り", "悔しさ", "悲しさ", "自己否定", "焦り"];
+    const formIds = ["event", "quote", "body", "impulse", "autoThought", "facts", "nextAction", "support"];
+
+    const emotionState = Object.fromEntries(emotionNames.map(name => [name, 0]));
+
+    function $(id) { return document.getElementById(id); }
+
+    function nowLabel() {
+      return new Date().toLocaleString("ja-JP", {
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+      });
+    }
+
+    function getLogs() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function setLogs(logs) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function showScreen(name) {
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      $("screen-" + name).classList.add("active");
+      document.querySelectorAll(".navBtn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.target === name);
+      });
+      if (name === "history") renderHistory();
+      if (name === "reply") updateReply();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function initEmotions() {
+      const box = $("emotions");
+      box.innerHTML = "<label>感情の強さ：0〜100</label>" + emotionNames.map(name => `
+        <div class="emotion">
+          <div class="emotionTop"><span>${name}</span><span id="value-${name}">0</span></div>
+          <input type="range" min="0" max="100" value="0" id="emotion-${name}" oninput="setEmotion('${name}', this.value)" />
+        </div>
+      `).join("");
+    }
+
+    function setEmotion(name, value) {
+      emotionState[name] = Number(value);
+      $("value-" + name).textContent = value;
+      const top = Object.entries(emotionState).sort((a, b) => b[1] - a[1])[0];
+      const notice = $("emotionNotice");
+      if (top && top[1] >= 70) {
+        notice.style.display = "block";
+        notice.textContent = `今は「${top[0]}」が強い状態です。結論を出すより、先にTIPPで身体を落とすのが安全です。`;
+      } else {
+        notice.style.display = "none";
+      }
+    }
+
+    function collectForm() {
+      const data = {};
+      formIds.forEach(id => data[id] = $(id).value.trim());
+      data.emotions = { ...emotionState };
+      return data;
+    }
+
+    function saveLog() {
+      const log = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        createdAt: nowLabel(),
+        ...collectForm()
+      };
+      const logs = [log, ...getLogs()];
+      setLogs(logs);
+      resetForm();
+      showScreen("history");
+    }
+
+    function resetForm() {
+      formIds.forEach(id => $(id).value = "");
+      emotionNames.forEach(name => {
+        emotionState[name] = 0;
+        const slider = $("emotion-" + name);
+        const label = $("value-" + name);
+        if (slider) slider.value = 0;
+        if (label) label.textContent = "0";
+      });
+      $("emotionNotice").style.display = "none";
+    }
+
+    function makeReply(facts, nextAction) {
+      const issues = facts && facts.trim() ? facts.trim() : "指摘事項";
+      const next = nextAction && nextAction.trim() ? nextAction.trim() : "次に直すポイント";
+      return `ご指摘ありがとうございます。正確に受け止めたいので、整理させてください。\n\n今回の論点は「${issues}」で、次の対応は「${next}」という理解で合っていますでしょうか。\n\n優先順位が高いものから対応したいので、まず最初に見るべき観点をご教示いただけますと幸いです。`;
+    }
+
+    function updateReply() {
+      $("replyOutput").textContent = makeReply($("replyFacts").value, $("replyNext").value);
+    }
+
+    function syncReplyFromLog() {
+      $("replyFacts").value = $("facts").value;
+      $("replyNext").value = $("nextAction").value;
+      updateReply();
+    }
+
+    async function copyReply() {
+      updateReply();
+      await navigator.clipboard.writeText($("replyOutput").textContent);
+      $("copyNotice").style.display = "block";
+      setTimeout(() => $("copyNotice").style.display = "none", 1600);
+    }
+
+    ["replyFacts", "replyNext"].forEach(id => {
+      window.addEventListener("DOMContentLoaded", () => $(id).addEventListener("input", updateReply));
+    });
+
+    function renderHistory() {
+      const logs = getLogs();
+      const history = $("history");
+      if (!logs.length) {
+        history.innerHTML = `<div class="step"><strong>まだログがありません。</strong><span>DBTログを保存すると、ここに表示されます。</span></div>`;
+        return;
+      }
+
+      history.innerHTML = logs.map(log => {
+        const chips = Object.entries(log.emotions || {})
+          .filter(([, v]) => Number(v) > 0)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4)
+          .map(([name, value]) => `<span class="chip">${name} ${value}</span>`)
+          .join("");
+
+        return `
+          <div class="logItem">
+            <div class="logDate">${log.createdAt}</div>
+            <div class="logEvent">${escapeHtml(log.event || "出来事未入力")}</div>
+            <div class="chips">${chips}</div>
+            <div class="mini"><b>自動思考</b>${escapeHtml(log.autoThought || "未入力")}</div>
+            <div class="mini"><b>事実</b>${escapeHtml(log.facts || "未入力")}</div>
+            <div class="mini"><b>次の一手</b>${escapeHtml(log.nextAction || "未入力")}</div>
+            <button class="dangerBtn" onclick="deleteLog('${log.id}')">このログを削除</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function deleteLog(id) {
+      setLogs(getLogs().filter(log => log.id !== id));
+      renderHistory();
+    }
+
+    function clearLogs() {
+      if (confirm("全ログを削除しますか？")) {
+        setLogs([]);
+        renderHistory();
+      }
+    }
+
+    function exportText(logs) {
+      if (!logs.length) return "まだDBTログはありません。";
+      return logs.map((log, idx) => {
+        const emotions = Object.entries(log.emotions || {})
+          .filter(([, value]) => Number(value) > 0)
+          .map(([name, value]) => `${name}:${value}`)
+          .join(" / ");
+        return [
+          `# ${idx + 1}. ${log.createdAt}`,
+          `【出来事】${log.event || "未入力"}`,
+          `【言われたこと】${log.quote || "未入力"}`,
+          `【感情】${emotions || "未入力"}`,
+          `【身体反応】${log.body || "未入力"}`,
+          `【衝動】${log.impulse || "未入力"}`,
+          `【自動思考】${log.autoThought || "未入力"}`,
+          `【事実】${log.facts || "未入力"}`,
+          `【次の一手】${log.nextAction || "未入力"}`,
+          `【相談先】${log.support || "未入力"}`
+        ].join("\n");
+      }).join("\n\n---\n\n");
+    }
+
+    function downloadLogs() {
+      const blob = new Blob([exportText(getLogs())], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dbt-log-${new Date().toISOString().slice(0, 10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initEmotions();
+      updateReply();
+      renderHistory();
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
