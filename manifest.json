@@ -1,0 +1,22 @@
+{
+  "name": "状態チェック",
+  "short_name": "状態チェック",
+  "description": "心身の状態を0〜3点で記録し、安全・注意・危険を判定するセルフチェックアプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#111827",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

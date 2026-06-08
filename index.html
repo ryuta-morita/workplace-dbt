@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="心身の状態を0〜3点で記録し、安全・注意・危険を判定するセルフチェックアプリ" />
+  <title>状態チェック</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Self Check</p>
+      <h1>状態チェック</h1>
+      <p class="lead">0〜3点で今の状態を記録し、「安全・注意・危険」を判定します。</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="notice" aria-label="重要な注意">
+      <strong>注意：</strong>このアプリは医療診断ではありません。強い息苦しさ、突然の強い頭痛、意識がもうろうとする、手足のしびれ・脱力、希死念慮・自傷衝動がある場合は、点数に関係なく安全確保を優先してください。
+    </section>
+
+    <section class="score-guide card">
+      <h2>点数のつけ方</h2>
+      <div class="guide-grid">
+        <div><span>3</span>かなりある</div>
+        <div><span>2</span>ある</div>
+        <div><span>1</span>少しある・あるかもしれない</div>
+        <div><span>0</span>なし</div>
+      </div>
+    </section>
+
+    <form id="checkForm" class="card" autocomplete="off">
+      <div class="section-title">
+        <h2>チェック項目</h2>
+        <p>9項目・最大27点。最後の「希死念慮・自傷衝動」は緊急フラグとして別扱いです。</p>
+      </div>
+
+      <div id="items" class="items"></div>
+
+      <div class="section-title emergency-title">
+        <h2>緊急フラグ</h2>
+        <p>ここが1点以上なら、総点に関係なく「危険」と判定します。</p>
+      </div>
+      <div id="emergencyItem" class="items"></div>
+
+      <div class="button-row sticky-actions">
+        <button type="button" class="primary" id="calcButton">判定する</button>
+        <button type="button" class="secondary" id="resetButton">リセット</button>
+      </div>
+    </form>
+
+    <section id="resultCard" class="result card hidden" aria-live="polite">
+      <p class="eyebrow">Result</p>
+      <h2 id="resultTitle">判定結果</h2>
+      <div class="score-box">
+        <div>
+          <span class="score-label">総点</span>
+          <strong id="totalScore">0</strong><span class="score-max"> / 27</span>
+        </div>
+        <div>
+          <span class="score-label">判定</span>
+          <strong id="statusLabel">安全</strong>
+        </div>
+      </div>
+      <div id="flagList" class="flag-list hidden"></div>
+      <div id="advice" class="advice"></div>
+      <div class="button-row">
+        <button type="button" class="primary" id="saveButton">この結果を保存</button>
+      </div>
+    </section>
+
+    <section class="history card">
+      <div class="section-title history-head">
+        <div>
+          <h2>履歴</h2>
+          <p>端末内だけに保存されます。外部送信はしません。</p>
+        </div>
+        <button type="button" class="secondary small" id="clearHistoryButton">履歴削除</button>
+      </div>
+      <div id="historyList" class="history-list empty">まだ履歴はありません。</div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>危険判定時は、一人で抱え込まず、家族・主治医・カウンセラー・救急相談・119など現実の支援につなげてください。</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
